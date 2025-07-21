@@ -7,7 +7,7 @@ const LoginPage = ({ onLogin }) => {
   const [pass, setPass] = useState('');
 
   const handleLogin = () => {
-    fetch('http://localhost:3001/users')
+    fetch('http://localhost:3001/members')
       .then(res => res.json())
       .then(data => {
         const found = data.find(item =>
@@ -23,26 +23,29 @@ const LoginPage = ({ onLogin }) => {
 
   return (
     <div className="page-wrapper">
-      <header className="header">
-        🏋️ Gym Management System
-      </header>
+      <div className="login-layout">
+        <div className="login-left">
+          <h1>🏋️ Islamabad Gym</h1>
+          <p>Welcome to the Islamabad Gym. Please log in to continue.</p>
+        </div>
 
-      <div className="login-container">
-        <div className="login-card">
-          <h2>Login</h2>
-          <input
-            type="text"
-            placeholder="User ID"
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={pass}
-            onChange={(e) => setPass(e.target.value)}
-          />
-          <button onClick={handleLogin}>Login</button>
+        <div className="login-right">
+          <div className="login-card">
+            <h2>Login</h2>
+            <input
+              type="text"
+              placeholder="User ID"
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={pass}
+              onChange={(e) => setPass(e.target.value)}
+            />
+            <button onClick={handleLogin}>Login</button>
+          </div>
         </div>
       </div>
 

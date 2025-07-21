@@ -13,9 +13,10 @@ const ProfilePage = ({ user, onLogout }) => {
         </div>
         <div className="profile-details">
           <div><strong>Email:</strong> {user.Email}</div>
-          <div><strong>City:</strong> {user.City}</div>
           <div><strong>Package:</strong> {user.Package}</div>
           <div><strong>Member Since:</strong> {user.Since}</div>
+          <div><strong>MemberShip Started:</strong> {user.Started}</div>
+          <div><strong>Member Expire:</strong> {user.Expird}</div>
         </div>
         <button className="button" onClick={onLogout}>Logout</button>
       </div>

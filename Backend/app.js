@@ -1,12 +1,18 @@
-// server.js
+// server.js (Express Admin Panel - With HTML Frontend)
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const app = express();
-const PORT = 3001;
 
 app.use(cors());
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-const users = [
+// Hardcoded admin credentials
+const ADMIN = { username: 'admin', password: 'admin123' };
+
+// In-memory users list
+let members = [
   {
     user: {
       Name: "Taha",
@@ -15,26 +21,41 @@ const users = [
       Package: "Deluxe",
       Since: "19/2/2025",
       Email: "taha@example.com",
-      City: "Islamabad"
-    }
-  },
-  {
-    user: {
-      Name: "Ali",
-      UserId: "ali123",
-      Pass: "5678",
-      Package: "Standard",
-      Since: "10/1/2024",
-      Email: "ali@example.com",
-      City: "Lahore"
+      Started: "19/2/2025",
+      Expird: "19/3/2026"
     }
   }
 ];
 
-app.get('/users', (req, res) => {
-  res.json(users);
+// Admin login check (simple and fake session)
+app.post('/admin-login', (req, res) => {
+  const { username, password } = req.body;
+  if (username === ADMIN.username && password === ADMIN.password) {
+    res.json({ success: true });
+  } else {
+    res.status(401).json({ success: false, message: 'Invalid credentials' });
+  }
 });
 
+// Get all members
+app.get('/members', (req, res) => {
+  res.json(members);
+});
+
+// Add new member
+app.post('/add-member', (req, res) => {
+  const newMember = req.body;
+  members.push({ user: newMember });
+  res.json({ success: true, members });
+});
+
+// Serve index.html as home page
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Start server
+const PORT = 3001;
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Admin panel backend running on http://localhost:${PORT}`);
 });

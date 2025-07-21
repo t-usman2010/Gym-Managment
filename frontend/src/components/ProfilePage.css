@@ -1,0 +1,140 @@
+/* Background wrapper */
+.profile-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1b5e20, #66bb6a);
+  padding: 40px 20px;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Profile Card */
+.profile-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 40px;
+  width: 100%;
+  max-width: 1000px;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 40px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  animation: fadeIn 0.6s ease-out;
+}
+
+/* Left side: user basic info */
+.profile-header {
+  text-align: center;
+  border-right: 2px solid #e0e0e0;
+  padding-right: 20px;
+}
+
+.avatar {
+  background-color: #2e7d32;
+  color: #fff;
+  font-size: 3.2rem;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.profile-header h2 {
+  font-size: 1.9rem;
+  margin: 10px 0 5px;
+  color: #2e7d32;
+}
+
+.userid {
+  color: #777;
+  font-size: 0.95rem;
+}
+
+/* Right side: details grid */
+.profile-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 30px;
+  color: #333;
+  font-size: 1rem;
+}
+
+/* Each field */
+.profile-details div {
+  background: #f5f5f5;
+  border-left: 5px solid #2e7d32;
+  padding: 14px 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  position: relative;
+  transition: transform 0.2s;
+}
+
+.profile-details div:hover {
+  transform: translateY(-2px);
+}
+
+.profile-details strong {
+  color: #1b5e20;
+}
+
+/* Logout button */
+.button {
+  grid-column: span 2;
+  margin-top: 20px;
+  padding: 14px;
+  background-color: #2e7d32;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  transition: background-color 0.2s ease-in-out;
+}
+
+.button:hover {
+  background-color: #1a4d1a;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Layout */
+@media (max-width: 768px) {
+  .profile-card {
+    grid-template-columns: 1fr;
+    padding: 30px 20px;
+  }
+
+  .profile-header {
+    border-right: none;
+    border-bottom: 2px solid #e0e0e0;
+    padding-right: 0;
+    padding-bottom: 20px;
+  }
+
+  .profile-details {
+    grid-template-columns: 1fr;
+  }
+
+  .button {
+    grid-column: span 1;
+  }
+}
