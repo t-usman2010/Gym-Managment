@@ -2,123 +2,160 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel - Gym Management</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
     <h1>Admin Panel</h1>
 
-    <div id="login-section">
-      <h2>Login</h2>
-      <input id="username" type="text" placeholder="Username" />
-      <input id="password" type="password" placeholder="Password" />
-      <button onclick="login()">Login</button>
-      <p id="login-error" class="error"></p>
-    </div>
+    <form id="loginForm">
+      <h2>Admin Login</h2>
+      <input type="text" placeholder="Username" id="adminUser" required />
+      <input type="password" placeholder="Password" id="adminPass" required />
+      <button type="submit">Login</button>
+    </form>
 
-    <div id="admin-section" style="display: none;">
-      <h2>Member List</h2>
-      <table id="members-table">
+    <div id="adminPanel" style="display:none">
+      <h2>Add New Member</h2>
+      <form id="memberForm">
+        <input type="text" placeholder="Name" id="name" required />
+        <input type="text" placeholder="User ID" id="userId" required />
+        <input type="password" placeholder="Password" id="pass" required />
+        <input type="text" placeholder="Package" id="package" required />
+        <input type="text" placeholder="Since" id="since" required />
+        <input type="email" placeholder="Email" id="email" required />
+        <input type="text" placeholder="Started" id="started" required />
+        <input type="text" placeholder="Expired" id="expired" required />
+        <button type="submit">Add Member</button>
+      </form>
+
+      <h2>All Members</h2>
+      <table>
         <thead>
           <tr>
             <th>Name</th>
-            <th>User ID</th>
+            <th>UserId</th>
             <th>Email</th>
             <th>Package</th>
             <th>Since</th>
             <th>Started</th>
-            <th>Expird</th>
+            <th>Expired</th>
+            <th>Actions</th>
           </tr>
         </thead>
-        <tbody></tbody>
+        <tbody id="memberTable"></tbody>
       </table>
-
-      <h2>Add New Member</h2>
-      <form id="member-form" onsubmit="addMember(event)">
-        <input type="text" id="name" placeholder="Name" required />
-        <input type="text" id="userId" placeholder="User ID" required />
-        <input type="password" id="pass" placeholder="Password" required />
-        <input type="text" id="email" placeholder="Email" required />
-        <input type="text" id="package" placeholder="Package" required />
-        <input type="text" id="since" placeholder="Member Since" required />
-        <input type="text" id="started" placeholder="Started" required />
-        <input type="text" id="expird" placeholder="Expire Date" required />
-        <button type="submit">Add Member</button>
-      </form>
     </div>
   </div>
 
   <script>
-    function login() {
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
+    const loginForm = document.getElementById('loginForm');
+    const memberForm = document.getElementById('memberForm');
+    const memberTable = document.getElementById('memberTable');
+    const adminPanel = document.getElementById('adminPanel');
 
+    loginForm.addEventListener('submit', e => {
+      e.preventDefault();
       fetch('/admin-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({
+          username: document.getElementById('adminUser').value,
+          password: document.getElementById('adminPass').value
+        })
       })
-        .then(res => {
-          if (!res.ok) throw new Error('Invalid credentials');
-          return res.json();
-        })
-        .then(() => {
-          document.getElementById('login-section').style.display = 'none';
-          document.getElementById('admin-section').style.display = 'block';
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          loginForm.style.display = 'none';
+          adminPanel.style.display = 'block';
           loadMembers();
-        })
-        .catch(err => {
-          document.getElementById('login-error').textContent = err.message;
-        });
-    }
+        } else {
+          alert('Invalid login');
+        }
+      });
+    });
 
-    function loadMembers() {
-      fetch('/members')
-        .then(res => res.json())
-        .then(data => {
-          const tbody = document.querySelector('#members-table tbody');
-          tbody.innerHTML = '';
-          data.forEach(entry => {
-            const m = entry.user;
-            const row = `<tr>
-              <td>${m.Name}</td>
-              <td>${m.UserId}</td>
-              <td>${m.Email}</td>
-              <td>${m.Package}</td>
-              <td>${m.Since}</td>
-              <td>${m.Started}</td>
-              <td>${m.Expird}</td>
-            </tr>`;
-            tbody.innerHTML += row;
-          });
-        });
-    }
-
-    function addMember(e) {
+    memberForm.addEventListener('submit', e => {
       e.preventDefault();
-      const newMember = {
+      const newUser = {
         Name: document.getElementById('name').value,
         UserId: document.getElementById('userId').value,
         Pass: document.getElementById('pass').value,
-        Email: document.getElementById('email').value,
         Package: document.getElementById('package').value,
         Since: document.getElementById('since').value,
+        Email: document.getElementById('email').value,
         Started: document.getElementById('started').value,
-        Expird: document.getElementById('expird').value
+        Expird: document.getElementById('expired').value
       };
 
       fetch('/add-member', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newMember)
+        body: JSON.stringify(newUser)
       })
+      .then(res => res.json())
+      .then(() => {
+        loadMembers();
+        memberForm.reset();
+      });
+    });
+
+    function loadMembers() {
+      fetch('/members')
         .then(res => res.json())
-        .then(() => {
-          loadMembers();
-          document.getElementById('member-form').reset();
+        .then(data => {
+          memberTable.innerHTML = '';
+          data.forEach(m => {
+            memberTable.innerHTML += `
+              <tr>
+                <td>${m.user.Name}</td>
+                <td>${m.user.UserId}</td>
+                <td>${m.user.Email}</td>
+                <td>${m.user.Package}</td>
+                <td>${m.user.Since}</td>
+                <td>${m.user.Started}</td>
+                <td>${m.user.Expird}</td>
+                <td>
+                  <button onclick="editMember('${m.user.UserId}')">Edit</button>
+                  <button onclick="deleteMember('${m.user.UserId}')">Delete</button>
+                </td>
+              </tr>
+            `;
+          });
         });
+    }
+
+    function deleteMember(userId) {
+      if (confirm(`Delete user ${userId}?`)) {
+        fetch(`/delete-member/${userId}`, { method: 'DELETE' })
+          .then(res => res.json())
+          .then(() => loadMembers());
+      }
+    }
+
+    function editMember(userId) {
+      const updated = prompt("Enter new data as Name,Email,Package,Since,Started,Expired").split(',');
+      const editedUser = {
+        Name: updated[0],
+        UserId: userId,
+        Email: updated[1],
+        Package: updated[2],
+        Since: updated[3],
+        Started: updated[4],
+        Expird: updated[5],
+        Pass: 'unchanged' // or keep old
+      };
+
+      fetch(`/edit-member/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editedUser)
+      })
+      .then(res => res.json())
+      .then(() => loadMembers());
     }
   </script>
 </body>

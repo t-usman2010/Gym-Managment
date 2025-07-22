@@ -1,4 +1,4 @@
-// server.js (Express Admin Panel - With HTML Frontend)
+// server.js (Express Admin Panel - With HTML Frontend + Delete/Edit Support)
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -47,6 +47,27 @@ app.post('/add-member', (req, res) => {
   const newMember = req.body;
   members.push({ user: newMember });
   res.json({ success: true, members });
+});
+
+// Delete a member by UserId
+app.delete('/delete-member/:userId', (req, res) => {
+  const userIdToDelete = req.params.userId;
+  members = members.filter(m => m.user.UserId !== userIdToDelete);
+  res.json({ success: true, members });
+});
+
+// Edit/update a member by UserId
+app.put('/edit-member/:userId', (req, res) => {
+  const userIdToEdit = req.params.userId;
+  const updatedUser = req.body;
+
+  const index = members.findIndex(m => m.user.UserId === userIdToEdit);
+  if (index !== -1) {
+    members[index].user = updatedUser;
+    res.json({ success: true, members });
+  } else {
+    res.status(404).json({ success: false, message: 'User not found' });
+  }
 });
 
 // Serve index.html as home page
