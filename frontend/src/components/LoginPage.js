@@ -7,17 +7,28 @@ const LoginPage = ({ onLogin }) => {
   const [pass, setPass] = useState('');
 
   const handleLogin = () => {
+    console.log('=== LOGIN ATTEMPT ===');
+    
     fetch('http://localhost:3001/members')
       .then(res => res.json())
       .then(data => {
+        console.log('Checking credentials...');
+        
         const found = data.find(item =>
           item?.user?.UserId === userId && item?.user?.Pass === pass
         );
+        
         if (found) {
+          console.log('✅ Login successful');
           onLogin(found.user);
         } else {
+          console.log('❌ Authentication failed');
           alert('Invalid credentials');
         }
+      })
+      .catch(error => {
+        console.error('Login error:', error);
+        alert('Login failed. Please try again.');
       });
   };
 

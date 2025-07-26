@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Panel - Gym Management</title>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -11,21 +11,21 @@
     <h1>Admin Panel</h1>
 
     <form id="loginForm">
-      <h2>Admin Login</h2>
+      <h2>Login</h2>
       <input type="text" placeholder="Username" id="adminUser" required />
       <input type="password" placeholder="Password" id="adminPass" required />
       <button type="submit">Login</button>
     </form>
 
     <div id="adminPanel" style="display:none">
-      <h2>Add New Member</h2>
+      <h2>Add Member</h2>
       <form id="memberForm">
         <input type="text" placeholder="Name" id="name" required />
         <input type="text" placeholder="User ID" id="userId" required />
         <input type="password" placeholder="Password" id="pass" required />
+        <input type="email" placeholder="Email" id="email" required />
         <input type="text" placeholder="Package" id="package" required />
         <input type="text" placeholder="Since" id="since" required />
-        <input type="email" placeholder="Email" id="email" required />
         <input type="text" placeholder="Started" id="started" required />
         <input type="text" placeholder="Expired" id="expired" required />
         <button type="submit">Add Member</button>
@@ -47,6 +47,18 @@
         </thead>
         <tbody id="memberTable"></tbody>
       </table>
+
+      <h2>Edit Member</h2>
+      <form id="editForm" style="display:none">
+        <input type="hidden" id="editUserId" />
+        <input type="text" placeholder="Name" id="editName" required />
+        <input type="email" placeholder="Email" id="editEmail" required />
+        <input type="text" placeholder="Package" id="editPackage" required />
+        <input type="text" placeholder="Since" id="editSince" required />
+        <input type="text" placeholder="Started" id="editStarted" required />
+        <input type="text" placeholder="Expired" id="editExpired" required />
+        <button type="submit">Save Changes</button>
+      </form>
     </div>
   </div>
 
@@ -55,6 +67,7 @@
     const memberForm = document.getElementById('memberForm');
     const memberTable = document.getElementById('memberTable');
     const adminPanel = document.getElementById('adminPanel');
+    const editForm = document.getElementById('editForm');
 
     loginForm.addEventListener('submit', e => {
       e.preventDefault();
@@ -118,8 +131,8 @@
                 <td>${m.user.Since}</td>
                 <td>${m.user.Started}</td>
                 <td>${m.user.Expird}</td>
-                <td>
-                  <button onclick="editMember('${m.user.UserId}')">Edit</button>
+                <td class="actions">
+                  <button onclick="fillEditForm('${m.user.UserId}')">Edit</button>
                   <button onclick="deleteMember('${m.user.UserId}')">Delete</button>
                 </td>
               </tr>
@@ -136,27 +149,47 @@
       }
     }
 
-    function editMember(userId) {
-      const updated = prompt("Enter new data as Name,Email,Package,Since,Started,Expired").split(',');
-      const editedUser = {
-        Name: updated[0],
+    function fillEditForm(userId) {
+      fetch(`/member/${userId}`)
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('editForm').style.display = 'block';
+          document.getElementById('editUserId').value = userId;
+          document.getElementById('editName').value = data.user.Name;
+          document.getElementById('editEmail').value = data.user.Email;
+          document.getElementById('editPackage').value = data.user.Package;
+          document.getElementById('editSince').value = data.user.Since;
+          document.getElementById('editStarted').value = data.user.Started;
+          document.getElementById('editExpired').value = data.user.Expird;
+        });
+    }
+
+    editForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const userId = document.getElementById('editUserId').value;
+      const updatedUser = {
         UserId: userId,
-        Email: updated[1],
-        Package: updated[2],
-        Since: updated[3],
-        Started: updated[4],
-        Expird: updated[5],
-        Pass: 'unchanged' // or keep old
+        Name: document.getElementById('editName').value,
+        Email: document.getElementById('editEmail').value,
+        Package: document.getElementById('editPackage').value,
+        Since: document.getElementById('editSince').value,
+        Started: document.getElementById('editStarted').value,
+        Expird: document.getElementById('editExpired').value,
+        Pass: 'unchanged'
       };
 
       fetch(`/edit-member/${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editedUser)
+        body: JSON.stringify(updatedUser)
       })
       .then(res => res.json())
-      .then(() => loadMembers());
-    }
+      .then(() => {
+        editForm.reset();
+        editForm.style.display = 'none';
+        loadMembers();
+      });
+    });
   </script>
 </body>
 </html>

@@ -1,82 +1,145 @@
-// server.js (Express Admin Panel - With HTML Frontend + Delete/Edit Support)
 const express = require('express');
-const cors = require('cors');
+const mongoose = require('mongoose');
 const path = require('path');
 const app = express();
+const PORT = 3001;
 
-app.use(cors());
+// ✅ Replace with your actual MongoDB URI
+const MONGO_URI = 'mongodb+srv://taha2010:islamabad%4012731@myfirstproject.0xlsew1.mongodb.net/gymDB?retryWrites=true&w=majority&appName=MyFirstProject';
+
+// Middleware
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Hardcoded admin credentials
-const ADMIN = { username: 'admin', password: 'admin123' };
+// Connect to MongoDB
+mongoose.connect(MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('✅ Connected to MongoDB'))
+.catch(err => console.error('❌ MongoDB connection error:', err));
 
-// In-memory users list
-let members = [
-  {
-    user: {
-      Name: "Taha",
-      UserId: "t.usman",
-      Pass: "1234",
-      Package: "Deluxe",
-      Since: "19/2/2025",
-      Email: "taha@example.com",
-      Started: "19/2/2025",
-      Expird: "19/3/2026"
-    }
+// Schema & Model
+const memberSchema = new mongoose.Schema({
+  user: {
+    Name: String,
+    UserId: String,
+    Pass: String,
+    Email: String,
+    Package: String,
+    Since: String,
+    Started: String,
+    Expird: String
   }
-];
+});
 
-// Admin login check (simple and fake session)
+const Member = mongoose.model('Member', memberSchema);
+
+// 🟩 Admin login (basic)
 app.post('/admin-login', (req, res) => {
   const { username, password } = req.body;
-  if (username === ADMIN.username && password === ADMIN.password) {
+  if (username === 'admin' && password === 'admin123') {
     res.json({ success: true });
   } else {
-    res.status(401).json({ success: false, message: 'Invalid credentials' });
+    res.json({ success: false });
   }
 });
 
-// Get all members
-app.get('/members', (req, res) => {
-  res.json(members);
-});
-
-// Add new member
-app.post('/add-member', (req, res) => {
-  const newMember = req.body;
-  members.push({ user: newMember });
-  res.json({ success: true, members });
-});
-
-// Delete a member by UserId
-app.delete('/delete-member/:userId', (req, res) => {
-  const userIdToDelete = req.params.userId;
-  members = members.filter(m => m.user.UserId !== userIdToDelete);
-  res.json({ success: true, members });
-});
-
-// Edit/update a member by UserId
-app.put('/edit-member/:userId', (req, res) => {
-  const userIdToEdit = req.params.userId;
-  const updatedUser = req.body;
-
-  const index = members.findIndex(m => m.user.UserId === userIdToEdit);
-  if (index !== -1) {
-    members[index].user = updatedUser;
-    res.json({ success: true, members });
-  } else {
-    res.status(404).json({ success: false, message: 'User not found' });
+// 🟩 Add a new member
+app.post('/add-member', async (req, res) => {
+  try {
+    const newMember = new Member({ user: req.body });
+    await newMember.save();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Error adding member' });
   }
 });
 
-// Serve index.html as home page
+// 🟩 Get all members - FIXED
+app.get('/members', async (req, res) => {
+  try {
+    console.log('Getting members...');
+    const members = await Member.find();
+    console.log('Found members:', members.length);
+    
+    // Set proper headers to prevent download
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    
+    res.json(members);
+  } catch (err) {
+    console.log('Error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// 🟩 Get single member by ID (needed for edit button)
+app.get('/member/:userId', async (req, res) => {
+  try {
+    console.log('Getting member:', req.params.userId);
+    const member = await Member.findOne({ 'user.UserId': req.params.userId });
+    
+    if (!member) {
+      return res.status(404).json({ error: 'Member not found' });
+    }
+    
+    res.json(member);
+  } catch (err) {
+    console.log('Error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// 🟩 Delete a member
+app.delete('/delete-member/:userId', async (req, res) => {
+  try {
+    await Member.deleteOne({ 'user.UserId': req.params.userId });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Error deleting member' });
+  }
+});
+
+// 🟩 Edit a member
+app.put('/edit-member/:userId', async (req, res) => {
+  try {
+    const updateData = req.body;
+    
+    // Don't update password if it's "unchanged"
+    if (updateData.Pass === 'unchanged') {
+      delete updateData.Pass;  // Remove password from update
+      
+      // Use $set for non-password fields only
+      const fieldsToUpdate = {};
+      Object.keys(updateData).forEach(key => {
+        fieldsToUpdate[`user.${key}`] = updateData[key];
+      });
+      
+      await Member.updateOne(
+        { 'user.UserId': req.params.userId },
+        { $set: fieldsToUpdate }
+      );
+    } else {
+      // Update all fields including password
+      await Member.updateOne(
+        { 'user.UserId': req.params.userId },
+        { $set: { user: updateData } }
+      );
+    }
+    
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Error updating member' });
+  }
+});
+
+// 🟩 Serve index.html for root
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Start server
-const PORT = 3001;
 app.listen(PORT, () => {
-  console.log(`Admin panel backend running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
