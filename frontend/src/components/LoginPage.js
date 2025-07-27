@@ -13,7 +13,6 @@ const LoginPage = ({ onLogin }) => {
       .then(res => res.json())
       .then(data => {
         console.log('Checking credentials...');
-        
         const found = data.find(item =>
           item?.user?.UserId === userId && item?.user?.Pass === pass
         );
